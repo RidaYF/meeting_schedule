@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meeting Scheduler AI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #1a202c; /* Dark background */
+            color: #e2e8f0; /* Light text */
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 2rem;
+            box-sizing: border-box;
+        }
+        .container {
+            background-color: #2d3748; /* Slightly lighter dark for container */
+            padding: 2.5rem;
+            border-radius: 1rem;
+            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.2);
+            width: 100%;
+            max-width: 800px;
+            margin-bottom: 2rem;
+        }
+        h1, h2 {
+            color: #63b3ed; /* Blue for headings */
+            text-align: center;
+            margin-bottom: 1.5rem;
+            font-weight: 700;
+        }
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #a0aec0; /* Gray for labels */
+            font-weight: 600;
+        }
+        input[type="text"],
+        input[type="datetime-local"],
+        input[type="email"],
+        textarea {
+            width: 100%;
+            padding: 0.75rem;
+            margin-bottom: 1rem;
+            border: 1px solid #4a5568; /* Darker border */
+            border-radius: 0.5rem;
+            background-color: #4a5568; /* Darker input background */
+            color: #e2e8f0; /* Light text */
+            transition: border-color 0.2s;
+        }
+        input[type="text"]:focus,
+        input[type="datetime-local"]:focus,
+        input[type="email"]:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #63b3ed; /* Blue on focus */
+        }
+        button {
+            background-color: #63b3ed; /* Blue button */
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.1s;
+            border: none;
+            width: auto;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        button:hover {
+            background-color: #4299e1; /* Darker blue on hover */
+            transform: translateY(-1px);
+        }
+        button:active {
+            transform: translateY(0);
+        }
+        .response-box {
+            background-color: #2d3748;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            border: 1px solid #4a5568;
+            margin-top: 1rem;
+            white-space: pre-wrap; /* Preserve whitespace and line breaks */
+            word-wrap: break-word; /* Break long words */
+        }
+        .event-item {
+            background-color: #4a5568;
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            margin-bottom: 0.5rem;
+            border: 1px solid #63b3ed;
+        }
+        .event-item p {
+            margin: 0;
+            color: #e2e8f0;
+        }
+        @media (max-width: 640px) {
+            .container {
+                padding: 1.5rem;
+            }
+            h1 {
+                font-size: 1.8rem;
+            }
+            h2 {
+                font-size: 1.4rem;
+            }
+        }
+    </style>
+</head>
+<body class="flex flex-col items-center min-h-screen bg-gray-900 text-gray-200 p-8">
+    <div class="container shadow-lg rounded-xl p-8 max-w-3xl w-full">
+        <h1 class="text-4xl font-bold text-blue-400 mb-8">Meeting Scheduler AI</h1>
+
+        <!-- Gemini AI Interaction Section -->
+        <div class="mb-10">
+            <h2 class="text-3xl font-semibold text-blue-300 mb-6">Ask Gemini for Meeting Suggestions</h2>
+            <label for="geminiPrompt" class="block text-gray-400 text-lg font-medium mb-2">Your Question/Context:</label>
+            <textarea id="geminiPrompt" rows="5" class="w-full p-3 rounded-lg border border-gray-600 bg-gray-700 text-gray-200 focus:outline-none focus:border-blue-400 transition-colors" placeholder="e.g., 'Suggest 3 available time slots this week for a 30-minute meeting on project X.'"></textarea>
+            <button id="getSuggestionsBtn" class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-6 rounded-lg shadow-md transition-all duration-200 transform hover:scale-105">
+                Get Suggestions
+            </button>
+            <div id="geminiSuggestions" class="mt-4 p-4 rounded-lg bg-gray-800 border border-gray-700 text-gray-300 whitespace-pre-wrap">
+                <!-- Gemini suggestions will be displayed here -->
+            </div>
+        </div>
+
+        <!-- Meeting Scheduling Section -->
+        <div class="mb-10">
+            <h2 class="text-3xl font-semibold text-blue-300 mb-6">Schedule a New Meeting</h2>
+            <label for="meetingTitle" class="block text-gray-400 text-lg font-medium mb-2">Meeting Title:</label>
+            <input type="text" id="meetingTitle" class="w-full p-3 rounded-lg border border-gray-600 bg-gray-700 text-gray-200 focus:outline-none focus:border-blue-400 transition-colors" placeholder="e.g., Project Sync Up">
+
+            <label for="meetingStartTime" class="block text-gray-400 text-lg font-medium mb-2">Start Time:</label>
+            <input type="datetime-local" id="meetingStartTime" class="w-full p-3 rounded-lg border border-gray-600 bg-gray-700 text-gray-200 focus:outline-none focus:border-blue-400 transition-colors">
+
+            <label for="meetingEndTime" class="block text-gray-400 text-lg font-medium mb-2">End Time:</label>
+            <input type="datetime-local" id="meetingEndTime" class="w-full p-3 rounded-lg border border-gray-600 bg-gray-700 text-gray-200 focus:outline-none focus:border-blue-400 transition-colors">
+
+            <label for="attendeeEmails" class="block text-gray-400 text-lg font-medium mb-2">Attendees (comma-separated emails):</label>
+            <input type="email" id="attendeeEmails" class="w-full p-3 rounded-lg border border-gray-600 bg-gray-700 text-gray-200 focus:outline-none focus:border-blue-400 transition-colors" placeholder="e.g., user1@example.com, user2@example.com">
+
+            <button id="scheduleMeetingBtn" class="bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-6 rounded-lg shadow-md transition-all duration-200 transform hover:scale-105">
+                Schedule Meeting
+            </button>
+            <div id="scheduleResult" class="mt-4 p-4 rounded-lg bg-gray-800 border border-gray-700 text-gray-300 whitespace-pre-wrap">
+                <!-- Scheduling results will be displayed here -->
+            </div>
+        </div>
+
+        <!-- Display Existing Events Section -->
+        <div>
+            <h2 class="text-3xl font-semibold text-blue-300 mb-6">Your Upcoming Calendar Events</h2>
+            <button id="getEventsBtn" class="bg-purple-500 hover:bg-purple-600 text-white font-semibold py-2 px-6 rounded-lg shadow-md transition-all duration-200 transform hover:scale-105">
+                Refresh Events
+            </button>
+            <div id="calendarEvents" class="mt-4 p-4 rounded-lg bg-gray-800 border border-gray-700 text-gray-300">
+                <!-- Calendar events will be displayed here -->
+                <p>Click "Refresh Events" to load your calendar.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const getSuggestionsBtn = document.getElementById('getSuggestionsBtn');
+            const geminiPromptInput = document.getElementById('geminiPrompt');
+            const geminiSuggestionsDiv = document.getElementById('geminiSuggestions');
+
+            const scheduleMeetingBtn = document.getElementById('scheduleMeetingBtn');
+            const meetingTitleInput = document.getElementById('meetingTitle');
+            const meetingStartTimeInput = document.getElementById('meetingStartTime');
+            const meetingEndTimeInput = document.getElementById('meetingEndTime');
+            const attendeeEmailsInput = document.getElementById('attendeeEmails');
+            const scheduleResultDiv = document.getElementById('scheduleResult');
+
+            const getEventsBtn = document.getElementById('getEventsBtn');
+            const calendarEventsDiv = document.getElementById('calendarEvents');
+
+            // --- Function to fetch Gemini suggestions ---
+            getSuggestionsBtn.addEventListener('click', async () => {
+                const prompt = geminiPromptInput.value.trim();
+                if (!prompt) {
+                    geminiSuggestionsDiv.innerHTML = '<p class="text-red-400">Please enter a prompt for Gemini.</p>';
+                    return;
+                }
+
+                geminiSuggestionsDiv.innerHTML = '<p class="text-blue-300">Getting suggestions from Gemini...</p>';
+                try {
+                    const response = await fetch('/suggest', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ prompt: prompt })
+                    });
+                    const data = await response.text();
+                    if (response.ok) {
+                        geminiSuggestionsDiv.innerHTML = `<h3 class="font-semibold text-lg text-blue-200 mb-2">Gemini's Suggestions:</h3><p>${data.replace(/\n/g, '<br>')}</p>`;
+                    } else {
+                        geminiSuggestionsDiv.innerHTML = `<p class="text-red-400">Error from Gemini: ${data}</p>`;
+                    }
+                } catch (error) {
+                    console.error('Error fetching Gemini suggestions:', error);
+                    geminiSuggestionsDiv.innerHTML = `<p class="text-red-400">Failed to get suggestions. Please check server logs.</p>`;
+                }
+            });
+
+            // --- Function to schedule a meeting ---
+            scheduleMeetingBtn.addEventListener('click', async () => {
+                const title = meetingTitleInput.value.trim();
+                const startTime = meetingStartTimeInput.value;
+                const endTime = meetingEndTimeInput.value;
+                const attendeeEmails = attendeeEmailsInput.value.split(',').map(email => ({ email: email.trim() })).filter(a => a.email);
+
+                if (!title || !startTime || !endTime) {
+                    scheduleResultDiv.innerHTML = '<p class="text-red-400">Please fill in title, start time, and end time.</p>';
+                    return;
+                }
+
+                if (new Date(startTime) >= new Date(endTime)) {
+                    scheduleResultDiv.innerHTML = '<p class="text-red-400">End time must be after start time.</p>';
+                    return;
+                }
+
+                scheduleResultDiv.innerHTML = '<p class="text-blue-300">Scheduling meeting...</p>';
+                try {
+                    const response = await fetch('/schedule', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            summary: title,
+                            start: { dateTime: startTime + ':00' }, // Add seconds for full ISO format
+                            end: { dateTime: endTime + ':00' },     // Add seconds for full ISO format
+                            attendees: attendeeEmails
+                        })
+                    });
+                    const data = await response.json(); // Expecting JSON response
+                    if (response.ok) {
+                        scheduleResultDiv.innerHTML = `<p class="text-green-400">Meeting scheduled successfully!</p><div class="response-box mt-2"><p>Title: ${data.summary}</p><p>Start: ${new Date(data.start.dateTime).toLocaleString()}</p><p>End: ${new Date(data.end.dateTime).toLocaleString()}</p>${data.htmlLink ? `<p><a href="${data.htmlLink}" target="_blank" class="text-blue-400 hover:underline">View on Google Calendar</a></p>` : ''}</div>`;
+                        // Optionally refresh events after scheduling
+                        fetchCalendarEvents();
+                    } else {
+                        scheduleResultDiv.innerHTML = `<p class="text-red-400">Error scheduling meeting: ${data.error || 'Unknown error'}</p>`;
+                    }
+                } catch (error) {
+                    console.error('Error scheduling meeting:', error);
+                    scheduleResultDiv.innerHTML = `<p class="text-red-400">Failed to schedule meeting. Please check server logs.</p>`;
+                }
+            });
+
+            // --- Function to fetch and display existing calendar events ---
+            const fetchCalendarEvents = async () => {
+                calendarEventsDiv.innerHTML = '<p class="text-blue-300">Loading events...</p>';
+                try {
+                    const response = await fetch('/events');
+                    const events = await response.json();
+                    if (response.ok) {
+                        if (events.length === 0) {
+                            calendarEventsDiv.innerHTML = '<p class="text-gray-400">No upcoming events found.</p>';
+                        } else {
+                            calendarEventsDiv.innerHTML = '<h3 class="font-semibold text-lg text-blue-200 mb-2">Upcoming Events:</h3>';
+                            events.forEach(event => {
+                                const startTime = event.start?.dateTime ? new Date(event.start.dateTime).toLocaleString() : (event.start?.date || 'N/A');
+                                const endTime = event.end?.dateTime ? new Date(event.end.dateTime).toLocaleString() : (event.end?.date || 'N/A');
+                                calendarEventsDiv.innerHTML += `
+                                    <div class="event-item">
+                                        <p><span class="font-bold">Title:</span> ${event.summary}</p>
+                                        <p><span class="font-bold">When:</span> ${startTime} - ${endTime}</p>
+                                    </div>
+                                `;
+                            });
+                        }
+                    } else {
+                        calendarEventsDiv.innerHTML = `<p class="text-red-400">Error fetching events: ${events.error || 'Unknown error'}</p>`;
+                    }
+                } catch (error) {
+                    console.error('Error fetching calendar events:', error);
+                    calendarEventsDiv.innerHTML = `<p class="text-red-400">Failed to load events. Please check server logs.</p>`;
+                }
+            };
+
+            // Initial load of events when page loads
+            getEventsBtn.addEventListener('click', fetchCalendarEvents);
+            fetchCalendarEvents(); // Load events on page load
+        });
+    </script>
+</body>
+</html>
