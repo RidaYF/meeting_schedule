@@ -8,7 +8,7 @@ export async function suggestMeetingTimes(events: CalendarEvent[], userPrompt: s
     `${e.summary} from ${e.start?.dateTime || e.start?.date} to ${e.end?.dateTime || e.end?.date}`
   ).join('\n');
 
-  const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+  const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
 
   const fullPrompt = `Here are my current calendar events:\n${eventDetails}\n\nUser request: ${userPrompt}`;
 

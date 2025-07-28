@@ -51,10 +51,10 @@ mainRouter.get('/events', async (c) => {
     return c.json({ error: 'An error occurred while fetching calendar events.' }, 500);
   }
 });
+
  */
 
-
-import { Hono } from 'hono';
+ import { Hono } from 'hono';
 // import { serveStatic } from 'hono/dist/middleware/static'; // No longer needed for root static files
 
 // Import your API functions
@@ -112,3 +112,4 @@ mainRouter.get('/events', async (c) => {
     return c.json({ error: 'An error occurred while fetching calendar events.' }, 500);
   }
 });
+ 
